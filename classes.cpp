@@ -1,7 +1,5 @@
 #include "classes.hpp"
 
-
-
 Config::Config()
 {}
 
@@ -23,7 +21,7 @@ Config::Config(int ac, char **av)
 	{
 		std::cout << "\nOPTIONS:\n\n[0] FULL SCAN\n[1] SINGLE PORT SCAN\n"
 					"[2] RANGE SCAN\n[3] COMMON PORT SCAN\n[4] EXIT\n" << std::endl;
-		std::cout << "YOU CHOSE ->>>> ";
+		std::cout << "YOU CHOOSE ->>>> ";
 		std::getline(std::cin, choice);
 		while (choice.empty())
 		{
@@ -51,7 +49,7 @@ Config::Config(int ac, char **av)
 	}
 	if (choice1 == 0)
 	{
-		for (int i = 1; i <= 65535; i++)
+		for (int i = 0; i <= 65535; i++)
 			m_ports.push_back(i);
 		scan_type = ScanType::FULL;
 	}
@@ -60,12 +58,23 @@ Config::Config(int ac, char **av)
 		std::string port;
 		std::cout << "\nEnter the port number: ";
 		std::getline(std::cin, port);
+		if ((all_of(port.begin(), port.end(), ::isdigit) == false))
+		{
+			std::cout << "The port need to be all digits. Please enter again: ";
+			std::getline(std::cin, port);
+		}
 		while (port.empty())
 		{
 			std::cout << "Port number cannot be empty. Please enter again: ";
 			std::getline(std::cin, port);
 		}
-		m_ports.push_back(std::stoi(port));
+		int port2 = std::stoi(port);
+		if (port2 < 0 || port2 > 65535)
+		{
+			std::cout << "Port number must be between 0 and 65535. Please enter again: ";
+			std::getline(std::cin, port);
+		}
+		m_ports.push_back(port2);
 		scan_type = ScanType::SINGLE;
 	}
 	else if (choice1 == 2)
@@ -78,9 +87,17 @@ Config::Config(int ac, char **av)
 			std::cout << "Port range cannot be empty. Please enter again: ";
 			std::getline(std::cin, port);
 		}
-		for (int i = std::stoi(port.substr(0, port.find('-'))); 
+		for (int i = std::stoi(port.substr(0, port.find('-')));
 				i <= std::stoi(port.substr(port.find('-') + 1)); i++)
+		{
+			std::string beg, end;
+			if ((all_of(beg.begin(), end.end(), ::isdigit) || all_of(end.begin(), end.end(), ::isdigit)) == false)
+			{
+				std::cout << "The range have to be all digits. Please enter again: ";
+				std::getline(std::cin, port);
+			}
 			m_ports.push_back(i);
+		}
 		scan_type = ScanType::RANGE;
 	}
 	else if (choice1 == 3)
@@ -195,10 +212,8 @@ Scanner::Scanner(int ac, char **av)
 void Scanner::write_string(std::string str, ScanType type, int color)
 {
 	std::lock_guard<std::mutex> lock(write_mutex);
-	if (verbose)
-	{
+	if (verbose || type == ScanType::SINGLE)
 		std::cout << "\033[" << color << "m" << str << "\033[0m" << std::endl;
-	}
 }
 
 void Scanner::process_epoll_events(int epoll_fd)
