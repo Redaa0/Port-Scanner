@@ -1,50 +1,110 @@
 # C++ Port Scanner
 
-## Introduction
+## Introduction  
+A hybrid port scanner combining **multithreading** and **asynchronous I/O** (via `epoll`) for efficient network scanning. Built to explore C++ networking, cybersecurity concepts, and high-performance system design.  
 
-Welcome to my **C++ Port Scanner**! This project is a personal exploration aimed at improving my skills in **C++ programming**, **networking**, and **cybersecurity**. The primary focus is on implementing an efficient and scalable **port scanning tool** that leverages both **multithreading** and **asynchronous I/O** to handle multiple ports concurrently without blocking, making it both fast and scalable.
+---
 
-Through this project, I aim to better understand how networking is done in C++ and how to efficiently scan open ports on a target system or network. At the same time, I’m applying and expanding my knowledge of cybersecurity concepts.
+## Features  
+- 🚀 **Hybrid Architecture**: Threads + asynchronous I/O for scalability.  
+- 🔍 **Scan Modes**:  
+  - `Full Scan` (1-65535 ports)  
+  - `Single Port`  
+  - `Range Scan` (e.g., 20-100)  
+  - `Common Ports` (predefined list of 20+ ports)  
+- 🌐 **IPv4/IPv6 Support**: Resolves hostnames and handles both address types.  
+- 📊 **Real-Time Results**: Optional verbose mode for live updates.  
+- 🛠️ **Error Classification**: Detects closed, filtered, and unreachable ports/hosts.  
 
-## Features
+---
+## Prerequisites
 
-- **Multithreading Support**: The port scanner uses multiple threads to perform scans concurrently, significantly improving performance and reducing the total scan time.
-- **Asynchronous I/O**: The program is optimized for asynchronous I/O operations using **epoll**, which allows handling a large number of connections without blocking threads.
-- **Scan Types**:
-  - **Full Scan** (scan all ports from 1 to 65535)
-  - **Single Port Scan** (scan a specific port)
-  - **Range Scan** (scan a range of ports)
-  - **Common Port Scan** (scan a predefined list of common ports)
-- **Real-Time Results**: Choose to see results as the scan progresses or wait until the scan completes for a final report.
-- **Supports Both IPv4 and IPv6**: The scanner can handle both IPv4 and IPv6 addresses, making it more versatile for different networks.
+Before you begin, ensure that you have the following installed on your system:
 
-## How It Works
+- **C++ Compiler**: Make sure you have a C++17 compatible compiler (e.g., `g++` or `clang++`).
+- **Make**: The build system used to compile the project.
+- **Linux**: The program uses `epoll` for asynchronous I/O, which is Linux-specific.
 
-The program prompts you to select a scanning mode (full, single, range, or common port scan) and enter the target's IP address or hostname. It then proceeds to scan the chosen ports for open connections.
+---
 
-- The **multithreading** approach utilizes all available CPU cores to parallelize the scanning process, making it more efficient and faster.
-- **Asynchronous I/O (aio)** is used to handle socket connections concurrently, with the **epoll** system call managing multiple connections without blocking threads.
-- The program reports the results in real-time, showing open ports as they are discovered or waiting until all ports have been scanned.
-
-### Key Features in Code:
-- **Multithreading**: The program uses multiple threads to divide the work, allowing the scanning process to be completed much faster, especially on large target systems.
-- **Asynchronous I/O**: Using epoll, the program can scan ports asynchronously, handling large batches of ports without blocking any thread. This helps in managing numerous simultaneous socket connections.
-- **Port Scanning**: The program can scan for open ports in different modes. You can scan a range of ports or a list of common ports, or perform a full scan.
-- **Error Handling**: The program detects errors such as connection timeouts, unreachable hosts, or closed ports and handles them accordingly.
-
-## Technologies Used
-
-- **C++**: The core of the program is written in C++, leveraging modern features and best practices.
-- **Multithreading**: The program uses standard multithreading with `std::thread` to handle different scanning tasks concurrently.
-- **Asynchronous I/O (aio)**: Uses **epoll** for non-blocking socket operations to manage multiple concurrent connections.
-- **Networking**: The program uses `getaddrinfo` and `inet_pton` to support both IPv4 and IPv6 addresses, and the `connect` system call for checking open ports.
-- **Error Handling**: Handles network-related errors like `ECONNREFUSED`, `ETIMEDOUT`, and unreachable hosts gracefully.
-
-## Getting Started
-
-To get started with the port scanner, clone the repository and build the project:
+## Installation  
 
 ```bash
 git clone https://github.com/yourusername/port-scanner.git
 cd port-scanner
 make
+```
+---
+
+# Usage
+
+Interactive Mode
+
+Run the executable and follow prompts:
+
+```
+./port_scanner
+```
+1. Enter Target: IP/hostname (e.g., 192.168.1.1 or example.com).
+2. Choose Scan Type:
+       [0] Full Scan
+       [1] Single Port
+       [2]: Range Scan
+       [3]: Common Ports
+
+3. Real-Time Output: y for live results, n for summary.
+
+Example
+
+```
+Enter the IP address or the Hostname: 127.0.0.1
+
+OPTIONS:
+
+[0] FULL SCAN
+[1] SINGLE PORT SCAN
+[2] RANGE SCAN
+[3] COMMON PORT SCAN
+[4] EXIT
+
+YOU CHOOSE ->>>> 1
+
+Enter the port number: 22
+
+Do you wanna see results in real-time? (y/n): y
+Results will be displayed in real-time
+Port 22 is open
+
+Open ports: 22
+```
+---
+
+## Technical Design
+
+Multithreading
+  Dynamic Thread Pool: Threads = CPU cores (**std::thread::hardware_concurrency()**).
+  Batch Processing: Each thread processes 300 ports per batch to minimize lock contention.
+
+Asynchronous I/O Workflow
+  1. Non-Blocking Sockets: Created with SOCK_NONBLOCK.
+  2. epoll Monitoring: Tracks connection states (success/timeout/errors).
+  3. Error Handling: Classifies errors like ECONNREFUSED (closed) or ETIMEDOUT (filtered).
+
+---
+
+## Contributing
+1. Fork the repository.
+2. Add features (e.g., UDP scanning, rate limiting).
+3. Submit a Pull Request with clear descriptions.
+
+---
+
+## Troubleshooting
+No Results:
+      Verify target reachability with ping.
+      Check firewall rules on target/host.
+
+Build Errors: Ensure g++ and make are installed.
+Permission Issues: Run with sudo if required.
+
+Happy Scanning! 🔍
